@@ -28,3 +28,13 @@ Each frame prints JSON to stdout:
 ## Samples
 
 Place consented retail sample images or short clips in `samples/`. See `samples/README.md`. No sample media was supplied for this initial commit.
+## Run without video or camera
+
+To demonstrate the queue and dwell-time logic offline with simulated track IDs and timestamps:
+
+```powershell
+.\.venv\Scripts\python.exe demo_simulated_queue.py
+```
+
+This prints sample JSON snapshots and a long-wait alert. It verifies the metric logic only; simulated IDs are not YOLO detections or ByteTrack results. For real tracking validation, use a video or live camera.
+
