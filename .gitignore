@@ -6,4 +6,5 @@ venv/
 *.onnx
 *.mp4
 *.avi
-output/`ntmp/
+output/
+tmp/
