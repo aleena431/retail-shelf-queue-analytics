@@ -1,3 +1,5 @@
 ultralytics
 opencv-python
 lap>=0.5.12
+fastapi
+uvicorn[standard]

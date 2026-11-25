@@ -1,6 +1,6 @@
 # Checkout Queue Dwell-Time Monitor
 
-CPU-friendly checkout queue monitor using Ultralytics YOLO, ByteTrack, OpenCV polygon zones, and Python monotonic time.
+CPU-friendly checkout queue monitor using Ultralytics YOLO11n (or YOLOv8n), ByteTrack, OpenCV polygon zones, and Python monotonic time. It includes a FastAPI baseline for still-image person detection.
 
 ## Setup (Windows PowerShell)
 
@@ -9,13 +9,33 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-The virtual environment can be used directly; PowerShell activation is optional. Run a camera or video source with a polygon ROI in source-frame pixel coordinates:
+The virtual environment can be used directly; PowerShell activation is optional.
+
+## Day 2 baseline API
+
+Start the server:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn baseline:app --host 127.0.0.1 --port 8000
+```
+
+Check service health in another PowerShell window:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+```
+
+The health route returns `status`, configured model, whether the model has been loaded, and the CPU device. To detect people in one image, open `http://127.0.0.1:8000/docs`, choose `POST /detect`, and send JSON with a base64-encoded JPEG or PNG in `image_base64`. The model loads on the first `/detect` request, and inference runs on CPU. The endpoint returns `person_count` and bounding boxes. This still-image baseline does not produce track IDs or dwell times.
+
+## Queue monitor
+
+Run against a camera or video. Set polygon vertices in the source frame's pixel coordinates:
 
 ```powershell
 .\.venv\Scripts\python.exe checkout_queue_monitor.py --source 0 --roi 100,100 500,100 520,400 80,400 --show
 ```
 
-For a video file, replace `0` with its path, such as `samples/checkout.mp4`. The default model is `yolo11n.pt`; use `--model yolov8n.pt` to choose YOLOv8n. Ultralytics downloads weights on first run. Press `q` to close the preview. The preview's yellow polygon should cover the floor area where people wait, including their feet.
+For a video file, replace `0` with its path. The default model is `yolo11n.pt`; use `--model yolov8n.pt` to choose YOLOv8n. Ultralytics downloads weights on first use. Press `q` to close the preview. The yellow polygon should cover the floor where people wait, including their feet.
 
 Each frame prints JSON to stdout:
 
@@ -25,16 +45,14 @@ Each frame prints JSON to stdout:
 
 `queue_length` counts detected tracks whose bottom-center point falls inside the polygon. `avg_wait_sec` is the mean current dwell time for those tracks. A `long_wait` alert is emitted once per visit after 60 seconds by default; change this with `--alert-after 90`.
 
-## Samples
-
-Place consented retail sample images or short clips in `samples/`. See `samples/README.md`. No sample media was supplied for this initial commit.
 ## Run without video or camera
-
-To demonstrate the queue and dwell-time logic offline with simulated track IDs and timestamps:
 
 ```powershell
 .\.venv\Scripts\python.exe demo_simulated_queue.py
 ```
 
-This prints sample JSON snapshots and a long-wait alert. It verifies the metric logic only; simulated IDs are not YOLO detections or ByteTrack results. For real tracking validation, use a video or live camera.
+This prints sample queue snapshots and a long-wait alert using synthetic track IDs and timestamps. It demonstrates the dwell-time logic only; it does not represent real tracking output.
 
+## Samples and dataset
+
+Place permitted retail sample images or clips in `samples/`. No media is included in the repository yet. A local Roboflow YOLOv8 dataset with 666 labeled still images of people can be used for person-detection experiments; the dataset metadata identifies CC BY 4.0. Still images do not provide temporal data for validating ByteTrack or real wait times.
