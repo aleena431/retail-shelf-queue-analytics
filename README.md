@@ -56,3 +56,19 @@ This prints sample queue snapshots and a long-wait alert using synthetic track I
 ## Samples and dataset
 
 Place permitted retail sample images or clips in `samples/`. No media is included in the repository yet. A local Roboflow YOLOv8 dataset with 666 labeled still images of people can be used for person-detection experiments; the dataset metadata identifies CC BY 4.0. Still images do not provide temporal data for validating ByteTrack or real wait times.
+
+## Day 3 spatial overlays
+
+Run the spatial CV script on a still image or video. The defaults draw a normalized polygon ROI, a horizontal line, a 3x4 occupancy grid, blur over detected person head regions, and a density heatmap. Video input uses ByteTrack; still-image input shows one-frame geometry and occupancy only.
+
+```powershell
+$img = Get-ChildItem -LiteralPath "C:\Users\ZAEEM\Downloads\queue.v1i.yolov8\train\images" -Filter "*.jpg" | Select-Object -First 1
+.\.venv\Scripts\python.exe spatial_cv.py --source $img.FullName --output-dir output/spatial
+```
+
+The command writes `overlay_<image-name>.jpg`, `heatmap.png`, and `metrics.json` under `output/spatial`. The output folder is ignored by Git. Customize the zone and grid, for example:
+
+```powershell
+.\.venv\Scripts\python.exe spatial_cv.py --source path\to\clip.mp4 --roi 0.1,0.2 0.9,0.2 0.9,0.9 0.1,0.9 --grid-rows 4 --grid-cols 5 --line-y 0.6
+```
+
