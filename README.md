@@ -72,3 +72,28 @@ The command writes `overlay_<image-name>.jpg`, `heatmap.png`, and `metrics.json`
 .\.venv\Scripts\python.exe spatial_cv.py --source path\to\clip.mp4 --roi 0.1,0.2 0.9,0.2 0.9,0.9 0.1,0.9 --grid-rows 4 --grid-cols 5 --line-y 0.6
 ```
 
+
+
+## Day 4 decision rules and JSON output
+
+Run the checkout monitor on a still dataset image (no video or camera needed):
+
+```powershell
+.\.venv\Scripts\python.exe checkout_queue_monitor.py `
+  --source "C:\path\to\dataset\sample.jpg" `
+  --roi 100,100 500,100 520,400 80,400 `
+  --output-dir output/day4
+```
+
+A still image can provide a one-frame queue count, decision, JSON record, and annotated image; its wait time is `0` because it has no temporal information. To calculate dwell time, use a video clip instead:
+
+```powershell
+.\.venv\Scripts\python.exe checkout_queue_monitor.py `
+  --source .\samples\checkout_queue.mp4 `
+  --roi 100,100 500,100 520,400 80,400 `
+  --output-dir output/day4
+```
+
+The default decision rules mark a queue as `warning` at 4 people or 60 seconds average wait, and `critical` at 8 people or 120 seconds. Change them with `--queue-warning`, `--queue-critical`, `--wait-warning`, and `--wait-critical`. They are configurable starting values, not store-calibrated targets.
+
+The standardized per-frame JSON contract includes `schema_version`, `timestamp_utc`, `frame_index`, `queue_length`, `avg_wait_sec`, `status`, `recommendation`, `rule_hits`, `alerts`, `annotated_frame`, and `annotated_video`. Outputs are saved under `output/day4/`: `metrics.jsonl` (all processed frames), `metrics.json` (the final snapshot and configured thresholds), `latest_annotated.jpg`, and an annotated MP4. Add `--show` to view the annotated frames while processing.
